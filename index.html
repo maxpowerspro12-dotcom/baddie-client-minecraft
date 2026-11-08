@@ -1,0 +1,389 @@
+﻿<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Baddy Client</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Baddy Client – kostenloser Minecraft-Launcher mit 3D-Cosmetics, Anime-Plushies, Emotes, Quests und Performance-Mods.">
+<link rel="icon" href="img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Silkscreen&display=swap">
+<style>
+  /* Layout: dunkle "Nacht über einem Voxel-Server" – Hero links Text, rechts Nyx; darunter Raster-Abschnitte */
+  :root {
+    --ink: #0d0a12;        /* Hintergrund */
+    --ink-2: #16111e;      /* Flächen */
+    --ink-3: #221a2e;      /* erhöhte Flächen */
+    --line: #33283f;
+    --fg: #f3eef8;
+    --muted: #a99db8;
+    --red: #e5322d;        /* Nyx-Haar: Akzent */
+    --red-2: #ff6a4d;
+    --violet: #8b5cf6;     /* Client-Lila, sparsam */
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+    --pixel: "Silkscreen", "Consolas", monospace;
+    --r: 14px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--ink); color: var(--fg); font: 400 17px/1.6 var(--body); overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ink); }
+  a { color: inherit; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1, h2, h3 { font-family: var(--display); line-height: 1.05; text-wrap: balance; margin: 0; letter-spacing: -.02em; }
+  .px { font-family: var(--pixel); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--red-2); }
+  :focus-visible { outline: 2px solid var(--red-2); outline-offset: 3px; border-radius: 6px; }
+
+  /* Hintergrund: Sternen-Pixel + Voxel-Boden */
+  .sky { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(700px 420px at 78% 8%, color-mix(in srgb, var(--red) 22%, transparent), transparent 70%),
+      radial-gradient(600px 500px at 6% 30%, color-mix(in srgb, var(--violet) 16%, transparent), transparent 70%),
+      var(--ink); }
+  .sky canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* Navigation */
+  header.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; backdrop-filter: blur(14px) saturate(1.4); background: color-mix(in srgb, var(--ink) 72%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+  .nav .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 20px var(--display); letter-spacing: .01em; }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  .brand small { font: 400 11px var(--pixel); color: var(--muted); letter-spacing: .1em; }
+  .nav nav { display: flex; gap: 22px; margin-left: auto; }
+  .nav nav a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 15px; }
+  .nav nav a:hover { color: var(--fg); }
+  @media (max-width: 720px) { .nav nav { display: none; } .nav .btn { margin-left: auto; } }
+
+  /* Knöpfe */
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font: 700 16px var(--body); text-decoration: none; border: 0; cursor: pointer; transition: transform .15s, box-shadow .2s, background .2s; }
+  .btn.main { background: var(--red); color: #fff; box-shadow: 0 0 0 1px color-mix(in srgb, var(--red-2) 60%, transparent) inset, 0 10px 30px color-mix(in srgb, var(--red) 45%, transparent), 0 4px 0 #8f1512; }
+  .btn.main:hover { transform: translateY(-2px); background: #f03e38; }
+  .btn.main:active { transform: translateY(2px); box-shadow: 0 0 0 1px color-mix(in srgb, var(--red-2) 60%, transparent) inset, 0 4px 12px color-mix(in srgb, var(--red) 40%, transparent), 0 1px 0 #8f1512; }
+  .btn.ghost { background: var(--ink-3); color: var(--fg); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--muted); }
+  .btn.small { padding: 9px 16px; font-size: 14px; }
+  .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+
+  /* Hero */
+  .hero { padding-block: 72px 40px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+  .hero h1 { font-size: clamp(52px, 8.4vw, 104px); font-weight: 800; }
+  .hero h1 span { color: var(--red); display: block; font-size: .46em; letter-spacing: -.01em; margin-top: 10px; color: var(--fg); font-weight: 700; }
+  .hero p.lead { font-size: 20px; color: var(--muted); max-width: 33ch; margin: 22px 0 30px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; color: var(--muted); font-size: 14px; }
+  .meta b { color: var(--fg); font-weight: 600; }
+  .note { margin-top: 12px; font-size: 13px; color: var(--muted); max-width: 52ch; }
+  .note[hidden] { display: none; }
+  .stage { position: relative; aspect-ratio: 1; max-width: 100%; }
+  .stage .floor { position: absolute; left: 8%; right: 8%; bottom: 6%; height: 18%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--red) 55%, transparent), transparent); filter: blur(6px); }
+  .stage img.nyx { position: absolute; inset: 4% 8% 10%; width: 84%; image-rendering: auto; animation: bob 4.2s ease-in-out infinite; filter: drop-shadow(0 24px 30px rgba(0,0,0,.5)); }
+  .tagcloud { position: absolute; inset: 0; pointer-events: none; }
+  .chip { position: absolute; font: 400 11px var(--pixel); letter-spacing: .06em; padding: 7px 10px; border-radius: 8px; background: color-mix(in srgb, var(--ink-3) 85%, transparent); border: 1px solid var(--line); color: var(--fg); white-space: nowrap; }
+  .chip i { font-style: normal; color: var(--red-2); }
+  @keyframes bob { 50% { transform: translateY(-14px) rotate(-1.5deg); } }
+  @media (max-width: 880px) { .hero .wrap { grid-template-columns: 1fr; } .stage { max-width: 420px; margin: 0 auto; } }
+
+  /* Zahlenleiste */
+  .stats { border-block: 1px solid var(--line); background: color-mix(in srgb, var(--ink-2) 70%, transparent); }
+  .stats .wrap { display: grid; grid-template-columns: repeat(5, 1fr); padding-block: 22px; gap: 12px; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat b { font: 800 34px var(--display); font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 14px; }
+  @media (max-width: 720px) { .stats .wrap { grid-template-columns: repeat(2, 1fr); } }
+
+  section { padding-block: 84px 20px; }
+  .head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 34px; max-width: 680px; }
+  .head h2 { font-size: clamp(34px, 5vw, 54px); }
+  .head p { color: var(--muted); margin: 0; font-size: 18px; }
+
+  /* Features: ein großer Kasten + kleinere */
+  .feat { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .card { background: var(--ink-2); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .card h3 { font-size: 23px; }
+  .card p { color: var(--muted); margin: 0; font-size: 15.5px; }
+  .card .ico { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; background: var(--ink-3); border: 1px solid var(--line); font-size: 21px; }
+  .card.big { grid-column: span 4; grid-row: span 2; padding: 0; overflow: hidden; }
+  .card.big .txt { padding: 24px 26px 4px; display: flex; flex-direction: column; gap: 10px; }
+  .card.big h3 { font-size: 32px; }
+  .card.big img { display: block; width: 100%; margin-top: auto; border-top: 1px solid var(--line); }
+  .card.s2 { grid-column: span 2; }
+  .card.s3 { grid-column: span 3; }
+  .list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .list span { font-size: 13px; padding: 4px 9px; border-radius: 7px; background: var(--ink-3); color: var(--fg); border: 1px solid var(--line); }
+  @media (max-width: 880px) { .feat { grid-template-columns: 1fr 1fr; } .card.big, .card.s3 { grid-column: span 2; } .card.s2 { grid-column: span 1; } }
+  @media (max-width: 520px) { .feat { grid-template-columns: 1fr; } .card.big, .card.s2, .card.s3 { grid-column: span 1; } }
+
+  /* Trailer */
+  .video { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  .video video { display: block; width: 100%; aspect-ratio: 16 / 9; }
+
+  /* Galerie */
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gallery button { padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--ink-2); cursor: zoom-in; text-align: left; color: inherit; font: inherit; }
+  .gallery button.on { outline: 2px solid var(--red); outline-offset: 2px; }
+  .gallery img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top left; }
+  .gallery span { display: block; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+  .viewer { margin-bottom: 14px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); }
+  .viewer img { display: block; width: 100%; }
+  @media (max-width: 720px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Download / Schritte */
+  .dl { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+  .dlbox { background: linear-gradient(160deg, color-mix(in srgb, var(--red) 18%, var(--ink-2)), var(--ink-2) 60%); border: 1px solid color-mix(in srgb, var(--red) 40%, var(--line)); border-radius: 18px; padding: 30px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .dlbox h3 { font-size: 34px; }
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; background: var(--ink-2); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
+  .steps li::before { content: counter(s); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 10px; background: var(--ink-3); font: 400 18px var(--pixel); color: var(--red-2); }
+  .steps b { display: block; font-size: 17px; }
+  .steps span { color: var(--muted); font-size: 15px; }
+  .req { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 15px; margin: 0; }
+  .req dt { color: var(--muted); }
+  .req dd { margin: 0; font-weight: 600; }
+  @media (max-width: 880px) { .dl { grid-template-columns: 1fr; } }
+
+  /* FAQ */
+  .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  details { background: var(--ink-2); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; }
+  summary { cursor: pointer; font-weight: 700; font-size: 17px; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+  summary::after { content: "+"; font-family: var(--pixel); color: var(--red-2); }
+  details[open] summary::after { content: "–"; }
+  details p { color: var(--muted); margin: 10px 0 0; font-size: 15.5px; }
+  @media (max-width: 720px) { .faq { grid-template-columns: 1fr; } }
+
+  footer { margin-top: 90px; border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="sky" aria-hidden="true"><canvas id="stars"></canvas></div>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="img/icon.png" alt=""> Baddy <small>CLIENT</small></a>
+    <nav aria-label="Seiten-Navigation"><a href="#features">Features</a><a href="#trailer">Trailer</a><a href="#bilder">Bilder</a><a href="#faq">FAQ</a></nav>
+    <a class="btn main small js-dl" href="#download">Download</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <div class="px">▸ Minecraft-Launcher · Version 3.2</div>
+        <h1>Baddy Client<span>Dein Minecraft. Dein Style.</span></h1>
+        <p class="lead">Flügel, Auren und Anime-Plushies in echtem 3D, Emotes, Quests mit Belohnungen und Performance-Mods mit einem Klick. Kostenlos.</p>
+        <div class="cta">
+          <a class="btn main js-dl" id="dl-main" href="#download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
+            Für Windows herunterladen
+          </a>
+          <a class="btn ghost" href="#trailer">▶ Trailer ansehen</a>
+        </div>
+        <div class="meta"><span><b>Windows</b> 10 / 11</span><span><b>Minecraft</b> 1.21.11 + Fabric</span><span><b>Microsoft</b>-Login</span></div>
+        <p class="note js-note" hidden>Der Download-Knopf wird aktiv, sobald die Seite bei GitHub liegt.</p>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <div class="floor"></div>
+        <img class="nyx" src="img/nyx.png" alt="">
+        <div class="tagcloud">
+          <span class="chip" style="left:0;top:16%"><i>✦</i> 129 Flügel</span>
+          <span class="chip" style="right:0;top:6%"><i>✦</i> 27 Auren</span>
+          <span class="chip" style="right:2%;top:58%"><i>✦</i> winkt &amp; zwinkert</span>
+          <span class="chip" style="left:2%;top:68%"><i>✦</i> Emotes · Taste B</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="wrap">
+      <div class="stat"><b>129</b><span>Flügel</span></div>
+      <div class="stat"><b>27</b><span>Auren</span></div>
+      <div class="stat"><b>32</b><span>Plushies</span></div>
+      <div class="stat"><b>12</b><span>Quests + tägliche</span></div>
+      <div class="stat"><b>10</b><span>FPS-Mods mit 1 Klick</span></div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="head"><div class="px">▸ Was drin ist</div><h2>Alles, was ein Client können muss.</h2><p>Der Launcher holt Minecraft, Java und Fabric automatisch. Du wählst nur noch aus, was du anziehen willst.</p></div>
+      <div class="feat">
+        <article class="card big">
+          <div class="txt">
+            <div class="px">Cosmetics</div>
+            <h3>In 3D, genau wie im Spiel</h3>
+            <p>Flügel, Umhänge, Halos, Helme, Stirnbänder, Schuhe, Auren und Plushies. Dreh die Vorschau mit der Maus und sieh es mit F5 im Spiel.</p>
+            <div class="list"><span>Bild-Umhang mit eigenem PNG</span><span>Foto-Stirnband</span><span>Ketten-Halo S/W</span><span>Flügelgröße einstellbar</span></div>
+          </div>
+          <img src="img/cos.jpg" alt="Cosmetics-Seite im Baddy Client mit 3D-Vorschau und vielen Flügeln" loading="lazy">
+        </article>
+        <article class="card s2">
+          <div class="ico">🧸</div><h3>Anime-Plushies</h3>
+          <p>Sitzen auf der Schulter oder dem Kopf, winken und zwinkern. Beim Schleichen schlafen sie ein.</p>
+        </article>
+        <article class="card s2">
+          <div class="ico">⚡</div><h3>Mehr FPS</h3>
+          <p>Eigener Performance-Modus im Spiel, jede Einstellung einzeln. Dazu 10 empfohlene FPS-Mods mit einem Klick.</p>
+        </article>
+        <article class="card s2">
+          <div class="ico">🏆</div><h3>Quests</h3>
+          <p>Laufen, abbauen, schwimmen: der Client zählt mit. Geschaffte Quests schalten exklusive Cosmetics frei.</p>
+        </article>
+        <article class="card s2">
+          <div class="ico">💃</div><h3>Emotes</h3>
+          <p>Taste B öffnet das Emote-Rad: Floss, Twerk, Winken, Dab, Tanzen und mehr.</p>
+        </article>
+        <article class="card s2">
+          <div class="ico">✨</div><h3>Dein Design</h3>
+          <p>Liquid Glass, Neon oder Minimal, eigene Farben und Schriften. Das Hauptmenü im Spiel baust du per Drag &amp; Drop um.</p>
+        </article>
+        <article class="card s3">
+          <div class="ico">🧩</div><h3>Mods einfach</h3>
+          <p>Mods von Modrinth und CurseForge suchen und installieren, an- und ausschalten, eigene .jar-Dateien reinziehen. Einstellungen und Mods aus Lunar lassen sich übernehmen.</p>
+        </article>
+        <article class="card s3">
+          <div class="ico">🔐</div><h3>Sicher anmelden</h3>
+          <p>Login über das offizielle Microsoft-Fenster. Der Baddy Client sieht dein Passwort nie.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="trailer">
+    <div class="wrap">
+      <div class="head"><div class="px">▸ Trailer</div><h2>46 Sekunden Baddy.</h2></div>
+      <div class="video"><video id="vid" controls preload="metadata" poster="img/poster.jpg" playsinline src="trailer.mp4"></video></div>
+    </div>
+  </section>
+
+  <section id="bilder">
+    <div class="wrap">
+      <div class="head"><div class="px">▸ Bilder</div><h2>So sieht er aus.</h2></div>
+      <div class="viewer"><img id="big" src="img/play.jpg" alt="Startseite des Baddy Client"></div>
+      <div class="gallery" id="gal">
+        <button class="on" data-src="img/play.jpg" data-alt="Startseite des Baddy Client"><img src="img/play.jpg" alt="" loading="lazy"><span>Spielen</span></button>
+        <button data-src="img/cos.jpg" data-alt="Cosmetics mit 3D-Vorschau"><img src="img/cos.jpg" alt="" loading="lazy"><span>Cosmetics</span></button>
+        <button data-src="img/perf.jpg" data-alt="Performance-Mods mit einem Klick"><img src="img/perf.jpg" alt="" loading="lazy"><span>Performance</span></button>
+        <button data-src="img/quests.jpg" data-alt="Quests mit Belohnungen"><img src="img/quests.jpg" alt="" loading="lazy"><span>Quests</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="wrap">
+      <div class="head"><div class="px">▸ Download</div><h2>In drei Schritten spielen.</h2></div>
+      <div class="dl">
+        <div class="dlbox">
+          <h3>Baddy Client 3.2</h3>
+          <p style="margin:0;color:var(--muted)">Der Installer lädt den Client herunter, legt ihn auf deinen PC und erstellt eine Verknüpfung auf dem Desktop.</p>
+          <div class="cta">
+            <a class="btn main js-dl" id="dl-installer" href="#download">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
+              Installer laden
+            </a>
+            <a class="btn ghost js-zip" id="dl-zip" href="#download">ZIP (ohne Installer)</a>
+          </div>
+          <p class="note js-note" hidden>Der Download-Knopf wird aktiv, sobald die Seite bei GitHub liegt.</p>
+          <dl class="req">
+            <dt>System</dt><dd>Windows 10 oder 11 (64 Bit)</dd>
+            <dt>Spiel</dt><dd>Minecraft Java Edition (gekauft)</dd>
+            <dt>Cosmetics</dt><dd>Minecraft 1.21.11 mit Fabric</dd>
+            <dt>Größe</dt><dd>ca. 120 MB</dd>
+          </dl>
+        </div>
+        <ol class="steps">
+          <li><div><b>Installer herunterladen</b><span>Die Datei „Baddy-Client-Installer.bat“ landet in deinem Download-Ordner.</span></div></li>
+          <li><div><b>Doppelklick auf den Installer</b><span>Falls Windows warnt: „Weitere Informationen“ → „Trotzdem ausführen“. Das passiert bei jedem neuen Programm ohne teures Zertifikat.</span></div></li>
+          <li><div><b>Mit Microsoft anmelden und spielen</b><span>Der Client startet von allein. Wähle 1.21.11 + Fabric, rüste deine Cosmetics aus und drück auf Spielen.</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="head"><div class="px">▸ Fragen</div><h2>Gut zu wissen.</h2></div>
+      <div class="faq">
+        <details><summary>Kostet der Baddy Client etwas?</summary><p>Nein, er ist kostenlos. Du brauchst nur ein gekauftes Minecraft Java.</p></details>
+        <details><summary>Ist das ein Hack-Client?</summary><p>Nein. Es gibt keine Cheats. Cosmetics, Emotes und Plushies sieht nur, wer selbst den Baddy Client benutzt. Für andere Spieler und Server bist du ein normaler Spieler.</p></details>
+        <details><summary>Warum warnt Windows beim Installieren?</summary><p>Windows SmartScreen warnt bei jedem neuen Programm, das nicht mit einem gekauften Zertifikat signiert ist. Mit „Weitere Informationen“ → „Trotzdem ausführen“ geht es weiter.</p></details>
+        <details><summary>Auf welchen Versionen gehen die Cosmetics?</summary><p>Cosmetics, Emotes, Quests und das eigene Hauptmenü gibt es auf Minecraft 1.21.11 mit Fabric. Alle anderen Versionen kannst du trotzdem ganz normal spielen.</p></details>
+        <details><summary>Wo bleiben meine Einstellungen?</summary><p>Login, Einstellungen, Mods und Welten liegen in einem eigenen Ordner und bleiben bei Updates erhalten. Für ein Update startest du einfach den Installer nochmal.</p></details>
+        <details><summary>Wie werde ich ihn wieder los?</summary><p>Lösche den Ordner „%LOCALAPPDATA%\Programs\Baddy Client“ und die Verknüpfung auf dem Desktop.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© Baddy Client · gemacht mit ❤️ und viel Lila</span>
+    <span>Kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden.</span>
+  </div>
+</footer>
+
+<script>
+  // Download-Links: auf GitHub Pages automatisch aus der Adresse, sonst aus dem Release-Skript
+  (function () {
+    var user = 'maxpowerspro12-dotcom', repo = 'baddy-client';
+    var h = location.hostname, m = /^([a-z0-9-]+)\.github\.io$/i.exec(h);
+    if (m) { user = m[1]; var seg = location.pathname.split('/').filter(Boolean)[0]; if (seg && !/\.html$/i.test(seg)) repo = seg; }
+    var ready = user.indexOf('__') !== 0 && repo.indexOf('__') !== 0;
+    var base = 'https://github.com/' + user + '/' + repo + '/releases/latest/download/';
+    document.querySelectorAll('.js-dl').forEach(function (a) {
+      if (ready) a.href = base + 'Baddy-Client-Installer.bat';
+    });
+    document.querySelectorAll('.js-zip').forEach(function (a) {
+      if (ready) a.href = base + 'Baddy-Client-Windows.zip'; else a.setAttribute('aria-disabled', 'true');
+    });
+    if (!ready) {
+      document.querySelectorAll('.js-dl').forEach(function (a) { a.href = '#download'; });
+      document.querySelectorAll('.js-note').forEach(function (n) { n.hidden = false; });
+    }
+  })();
+
+  // Galerie
+  var big = document.getElementById('big');
+  document.querySelectorAll('#gal button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#gal button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      big.src = b.dataset.src; big.alt = b.dataset.alt;
+    });
+  });
+
+  // Pixel-Sterne
+  (function () {
+    var c = document.getElementById('stars'), x = c.getContext('2d'), stars = [], W, H, dpr;
+    function size() {
+      dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+      c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      stars = []; var n = Math.round(W * H / 9000);
+      for (var i = 0; i < n; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, s: Math.random() < .2 ? 3 : 2, p: Math.random() * 6.28 });
+    }
+    var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function draw(t) {
+      x.clearRect(0, 0, W, H);
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i], a = still ? .5 : .25 + .5 * (.5 + .5 * Math.sin(t / 900 + s.p));
+        x.fillStyle = i % 9 === 0 ? 'rgba(255,106,77,' + a + ')' : 'rgba(230,220,255,' + a + ')';
+        x.fillRect(Math.round(s.x), Math.round(s.y), s.s, s.s);
+      }
+      if (!still) requestAnimationFrame(draw);
+    }
+    size(); addEventListener('resize', size); requestAnimationFrame(draw);
+  })();
+</script>
+
+</body>
+</html>
+
