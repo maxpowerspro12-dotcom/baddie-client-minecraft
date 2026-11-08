@@ -178,7 +178,7 @@
   <div class="hero">
     <div class="wrap">
       <div>
-        <div class="px">▸ Minecraft-Launcher · Version 3.2</div>
+        <div class="px">▸ Minecraft-Launcher · Version <span class="js-ver">3.3</span></div>
         <h1>Baddy Client<span>Dein Minecraft. Dein Style.</span></h1>
         <p class="lead">Flügel, Auren und Anime-Plushies in echtem 3D, Emotes, Quests mit Belohnungen und Performance-Mods mit einem Klick. Kostenlos.</p>
         <div class="cta">
@@ -284,7 +284,7 @@
       <div class="head"><div class="px">▸ Download</div><h2>In drei Schritten spielen.</h2></div>
       <div class="dl">
         <div class="dlbox">
-          <h3>Baddy Client 3.2</h3>
+          <h3>Baddy Client <span class="js-ver">3.3</span></h3>
           <p style="margin:0;color:var(--muted)">Der Installer lädt den Client herunter, legt ihn auf deinen PC und erstellt eine Verknüpfung auf dem Desktop.</p>
           <div class="cta">
             <a class="btn main js-dl" id="dl-installer" href="#download">
@@ -352,6 +352,11 @@
       document.querySelectorAll('.js-note').forEach(function (n) { n.hidden = false; });
     }
   })();
+
+  // Versionsnummer automatisch aus dem Update-Ordner
+  fetch('update/update.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    if (j && j.version) document.querySelectorAll('.js-ver').forEach(function (e) { e.textContent = j.version; });
+  }).catch(function () { });
 
   // Galerie
   var big = document.getElementById('big');
