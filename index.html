@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
@@ -302,8 +302,8 @@
           </dl>
         </div>
         <ol class="steps">
-          <li><div><b>Installer herunterladen</b><span>Die Datei „Baddy-Client-Installer.bat“ landet in deinem Download-Ordner.</span></div></li>
-          <li><div><b>Doppelklick auf den Installer</b><span>Falls Windows warnt: „Weitere Informationen“ → „Trotzdem ausführen“. Das passiert bei jedem neuen Programm ohne teures Zertifikat.</span></div></li>
+          <li><div><b>Installer herunterladen und entpacken</b><span>Rechtsklick auf „Baddy-Client-Installer.zip“ → „Alle extrahieren“.</span></div></li>
+          <li><div><b>Doppelklick auf „Baddy-Client-Installer“</b><span>Falls Windows warnt: „Weitere Informationen“ → „Trotzdem ausführen“. Das passiert bei jedem neuen Programm ohne teures Zertifikat.</span></div></li>
           <li><div><b>Mit Microsoft anmelden und spielen</b><span>Der Client startet von allein. Wähle 1.21.11 + Fabric, rüste deine Cosmetics aus und drück auf Spielen.</span></div></li>
         </ol>
       </div>
@@ -335,13 +335,13 @@
 <script>
   // Download-Links: auf GitHub Pages automatisch aus der Adresse, sonst aus dem Release-Skript
   (function () {
-    var user = 'maxpowerspro12-dotcom', repo = 'baddy-client';
+    var user = '__GITHUB_USER__', repo = '__GITHUB_REPO__';
     var h = location.hostname, m = /^([a-z0-9-]+)\.github\.io$/i.exec(h);
     if (m) { user = m[1]; var seg = location.pathname.split('/').filter(Boolean)[0]; if (seg && !/\.html$/i.test(seg)) repo = seg; }
     var ready = user.indexOf('__') !== 0 && repo.indexOf('__') !== 0;
     var base = 'https://github.com/' + user + '/' + repo + '/releases/latest/download/';
     document.querySelectorAll('.js-dl').forEach(function (a) {
-      if (ready) a.href = base + 'Baddy-Client-Installer.bat';
+      if (ready) a.href = base + 'Baddy-Client-Installer.zip';
     });
     document.querySelectorAll('.js-zip').forEach(function (a) {
       if (ready) a.href = base + 'Baddy-Client-Windows.zip'; else a.setAttribute('aria-disabled', 'true');
@@ -386,4 +386,3 @@
 
 </body>
 </html>
-
